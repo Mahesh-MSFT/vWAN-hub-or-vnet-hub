@@ -1,0 +1,79 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "agent-node-count": {
+            "type": "int",
+            "metadata": {
+                "description": "Agent Node Count Value"
+            }
+        },
+        "AKS-Cluster-Name": {
+            "type": "string",
+            "metadata": {
+                "description": "AKS Cluster Name"
+            }
+        },
+        "clientId" : {
+            "type": "securestring",
+            "metadata": {
+                "description": "Client ID"
+            }
+        },
+        "clientSecret" : {
+            "type": "securestring",
+            "metadata": {
+                "description": "Client Secret"
+            }
+        },
+        "sshKey": {
+            "type": "string",
+            "metadata": {
+                "description": "SSH Key"
+            }
+        }
+    },
+    "functions": [],
+    "variables": {},
+    "resources": [
+        {
+            "name": "[parameters('AKS-Cluster-Name')]",
+            "type": "Microsoft.ContainerService/managedClusters",
+            "apiVersion": "2020-02-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "kubernetesVersion": "1.15.7",
+                "dnsPrefix": "dnsprefix",
+                "agentPoolProfiles": [
+                    {
+                        "name": "agentpool",
+                        "count": "[parameters('agent-node-count')]",
+                        "vmSize": "Standard_A1",
+                        "osType": "Linux",
+                        "storageProfile": "ManagedDisks"
+                    }
+                ],
+                "linuxProfile": {
+                    "adminUsername": "adminUserName",
+                    "ssh": {
+                        "publicKeys": [
+                            {
+                                "keyData": "[parameters('sshKey')]"
+                            }
+                        ]
+                    }
+                },
+                "servicePrincipalProfile": {
+                    "clientId": "[parameters('clientId')]",
+                    "secret": "[parameters('clientSecret')]"
+                }
+            }
+        }
+    ],
+    "outputs": {
+         "controlPlaneFQDN": {
+            "type": "string",
+            "value": "[reference(parameters('AKS-Cluster-Name')).fqdn]"
+        }
+    }
+}
