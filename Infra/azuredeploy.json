@@ -57,7 +57,7 @@
                     {
                         "name": "aksSubnet",
                         "properties": {
-                            "addressPrefix": "10.0.0.0/24"
+                            "addressPrefix": "10.0.1.0/24"
                         }
                     }
                 ]
@@ -69,16 +69,15 @@
             "apiVersion": "2020-02-01",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks/subnets',parameters('vnet-name'),'aksSubnet')]"
+                "[resourceId('Microsoft.Network/virtualNetworks',parameters('vnet-name'))]"
             ],
             "properties": {
-                "kubernetesVersion": "1.15.7",
                 "dnsPrefix": "dnsprefix",
                 "agentPoolProfiles": [
                     {
                         "name": "agentpool",
                         "count": "[parameters('agent-node-count')]",
-                        "vmSize": "Standard_A1",
+                        "vmSize": "Standard_DS2_v2",
                         "osType": "Linux",
                         "storageProfile": "ManagedDisks",
                         "vnetSubnetID":"[variables('subnetId')]"
@@ -99,7 +98,12 @@
                     "secret": "[parameters('clientSecret')]"
                 },
                 "networkProfile": {
-
+                    "networkPlugin": "azure",
+                    "outboundType": "userDefinedRouting",
+                    "loadBalancerSku": "standard",
+                    "serviceCidr": "10.0.1.0/24",
+                    "dnsServiceIP": "10.0.1.10",
+                    "dockerBridgeCidr": "172.17.0.1/16"
                 }
             }
         }
