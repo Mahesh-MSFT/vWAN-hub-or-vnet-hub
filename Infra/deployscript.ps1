@@ -17,3 +17,8 @@ az keyvault update --enabled-for-template-deployment true -n maksh-key-vault
 az deployment group validate -g $rgName `
     --template-file azuredeploy.json `
     --parameters azuredeploy.parameters.json
+
+# Validate exisiting ARM
+az deployment group validate -g $rgName `
+    --template-file azuredeploy2.json `
+    --parameters azuredeploy2.parameters.json

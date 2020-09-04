@@ -1,0 +1,141 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vnet-name": { "type": "string", "metadata": { "description": "VNET Name"} },
+        "AKS-Cluster-Name": {
+            "type": "String"
+        },
+        "virtualNetworks_aks_fw_vnet_externalid": {
+            "defaultValue": "/subscriptions/5dd3998d-b447-44b5-884a-2da7751e365a/resourceGroups/aks-fw-rg/providers/Microsoft.Network/virtualNetworks/aks-fw-vnet",
+            "type": "String"
+        },
+        "clientSecret" : {
+            "type": "securestring",
+            "metadata": {
+                "description": "Client Secret"
+            }
+        }
+    },
+    "variables": {
+        "subnetId1": "[concat(parameters('virtualNetworks_aks_fw_vnet_externalid'), '/subnets/aks-subnet')]",
+        "subnetId2": "[resourceId(resourceGroup().name, 'Microsoft.Network/virtualNetworks/subnets',parameters('vnet-name'),'aksSubnet')]",
+        "subnetId3": "[concat(resourceId('Microsoft.Network/virtualNetworks',parameters('vnet-name')), '/subnets/aksSubnet')]",
+        "subnetId4": "[concat(resourceId('Microsoft.Network/virtualNetworks',parameters('vnet-name')), '/subnets/aksSubnet')]"
+    },
+    "resources": [
+        {
+            "name": "[parameters('vnet-name')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2019-11-01",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "displayName": "[parameters('vnet-name')]"
+            },
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.0.0.0/16"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "aksSubnet",
+                        "properties": {
+                            "addressPrefix": "10.0.1.0/24"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.ContainerService/managedClusters",
+            "apiVersion": "2020-06-01",
+            "name": "[parameters('AKS-Cluster-Name')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Basic",
+                "tier": "Free"
+            },
+             "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks',parameters('vnet-name'))]"
+            ],
+            "properties": {
+                "kubernetesVersion": "1.16.13",
+                "dnsPrefix": "maksh-vwan-aks-dns",
+                "agentPoolProfiles": [
+                    {
+                        "name": "nodepool1",
+                        "count": 1,
+                        "vmSize": "Standard_DS2_v2",
+                        "osDiskSizeGB": 128,
+                        "vnetSubnetID": "[variables('subnetId4')]",
+                        "maxPods": 30,
+                        "type": "VirtualMachineScaleSets",
+                        "orchestratorVersion": "1.16.13",
+                        "enableNodePublicIP": false,
+                        "nodeLabels": {},
+                        "mode": "System",
+                        "osType": "Linux",
+                        "nodeImageVersion": "AKSUbuntu-1604-2020.08.06"
+                    }
+                ],
+                "linuxProfile": {
+                    "adminUsername": "azureuser",
+                    "ssh": {
+                        "publicKeys": [
+                            {
+                                "keyData": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDORjnAv9GbEvOQv70+VZeFSKji7sXI+vHuCtCh6IVko1arejcWA2GqybM7MR3zuOGUB28dEb3CK6tbB0N62KmRnnCOatR/NOtjJnmhJGaunwRCsaPTuNtJX7lF3Rv9VG4k6BF+OM1Y1xDTRLrV04j7mPnkuwWC6M8oCusfnvQSnI3L2PiC3Xlkt1MYvIGLSJIMCFmb0owxH4p57Ioz/fUkpyFRHJephWs5ybk2YYr79Zo7pKOgQWZaWoINhRFzdDSulwlD+mi/4XZqhItYFET7dMRHWVB6eMm4TnHiVp6wjVTcd0WW+/egDb745UWBuoj/tiE1MHT+YX/YJ3WIq5E7"
+                            }
+                        ]
+                    }
+                },
+                "windowsProfile": {
+                    "adminUsername": "azureuser"
+                },
+                "servicePrincipalProfile": {
+                    "clientId": "e3ac34cb-6736-453b-a53e-d5e3762d1a5b",
+                    "secret": "[parameters('clientSecret')]"
+                },
+                "addonProfiles": {
+                    "KubeDashboard": {
+                        "enabled": true
+                    }
+                },
+                "nodeResourceGroup": "[concat('MC_', parameters('AKS-Cluster-Name'), '-rg_', parameters('AKS-Cluster-Name'), '_uksouth2')]",
+                "enableRBAC": true,
+                "enablePodSecurityPolicy": false,
+                "networkProfile": {
+                    "networkPlugin": "azure",
+                    "loadBalancerSku": "Standard",
+                    "serviceCidr": "10.41.0.0/16",
+                    "dnsServiceIP": "10.41.0.10",
+                    "dockerBridgeCidr": "172.17.0.1/16",
+                    "outboundType": "userDefinedRouting"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.ContainerService/managedClusters/agentPools",
+            "apiVersion": "2020-06-01",
+            "name": "[concat(parameters('AKS-Cluster-Name'), '/nodepool1')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ContainerService/managedClusters', parameters('AKS-Cluster-Name'))]"
+            ],
+            "properties": {
+                "count": 1,
+                "vmSize": "Standard_DS2_v2",
+                "osDiskSizeGB": 128,
+                "vnetSubnetID": "[concat(parameters('virtualNetworks_aks_fw_vnet_externalid'), '/subnets/aks-subnet')]",
+                "maxPods": 30,
+                "type": "VirtualMachineScaleSets",
+                "orchestratorVersion": "1.16.13",
+                "enableNodePublicIP": false,
+                "nodeLabels": {},
+                "mode": "System",
+                "osType": "Linux",
+                "nodeImageVersion": "AKSUbuntu-1604-2020.08.06"
+            }
+        }
+    ]
+}

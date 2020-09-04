@@ -68,10 +68,15 @@
             "type": "Microsoft.ContainerService/managedClusters",
             "apiVersion": "2020-02-01",
             "location": "[resourceGroup().location]",
+             "sku": {
+                "name": "Basic",
+                "tier": "Free"
+            },
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks',parameters('vnet-name'))]"
             ],
             "properties": {
+                "kubernetesVersion": "1.16.13",
                 "dnsPrefix": "dnsprefix",
                 "agentPoolProfiles": [
                     {
@@ -99,11 +104,11 @@
                 },
                 "networkProfile": {
                     "networkPlugin": "azure",
-                    "outboundType": "userDefinedRouting",
-                    "loadBalancerSku": "standard",
+                    "loadBalancerSku": "Standard",
                     "serviceCidr": "10.0.1.0/24",
                     "dnsServiceIP": "10.0.1.10",
-                    "dockerBridgeCidr": "172.17.0.1/16"
+                    "dockerBridgeCidr": "172.17.0.1/16",
+                    "outboundType": "userDefinedRouting"
                 }
             }
         }
