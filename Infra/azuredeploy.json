@@ -8,6 +8,30 @@
                 "description": "Azure vWAN Name"
             }
         },
+         "vwanHubName": {
+            "type": "string",
+            "metadata": {
+                "description": "Azure vWAN Hub Name"
+            }
+        },
+        "firewallPolicyName": {
+            "type": "string",
+            "metadata": {
+                "description": "Azure Firewall Policy Name"
+            }
+        },
+         "firewallPolicyRuleGroupName": {
+            "type": "string",
+            "metadata": {
+                "description": "Azure Firewall Policy Rule Group Name"
+            }
+        },
+        "vwanFirewallName": {
+            "type": "string",
+            "metadata": {
+                "description": "vWAN Firewall Name"
+            }
+        },
         "aksVnetName": { "type": "string", "metadata": { "description": "AKS VNET Name"} },
         "agentNodeCount": {
             "type": "int",
@@ -47,7 +71,7 @@
     "resources": [
         {
             "type": "Microsoft.Network/virtualWans",
-            "apiVersion": "2019-08-01",
+            "apiVersion": "2020-05-01",
             "name": "[parameters('vwanName')]",
             "location": "[resourceGroup().location]",
             "properties": {
@@ -58,10 +82,122 @@
                 "type": "Standard"
             }
         },
+               {
+            "type": "Microsoft.Network/virtualHubs",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('vwanHubName')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('aksVnetName'))]",
+                "[resourceId('Microsoft.Network/virtualWans', parameters('vwanName'))]"
+            ],
+            "properties": {
+                "virtualNetworkConnections": [
+                    {
+                        "name": "hub-spoke",
+                        "properties": {
+                            "remoteVirtualNetwork": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('aksVnetName'))]"
+                            },
+                            "allowHubToRemoteVnetTransit": true,
+                            "allowRemoteVnetToUseHubVnetGateways": false,
+                            "enableInternetSecurity": true
+                        }
+                    }
+                ],
+                "addressPrefix": "10.0.0.0/16",
+                "virtualWan": {
+                    "id": "[resourceId('Microsoft.Network/virtualWans', parameters('vwanName'))]"
+                },
+                "azureFirewall": {
+                    "id": "[resourceId('Microsoft.Network/azureFirewalls', 'AzfwTest')]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/firewallPolicies",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('firewallPolicyName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "threatIntelMode": "Deny"
+            }
+        },
+        {
+            "type": "Microsoft.Network/firewallPolicies/ruleGroups",
+            "apiVersion": "2019-08-01",
+            "name": "[parameters('firewallPolicyRuleGroupName')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                            "[resourceId('Microsoft.Network/firewallPolicies',parameters('firewallPolicyName'))]"
+                    ],
+            "properties": {
+                "priority": 300,
+                    "rules": [
+                            {
+                                "name": "RC-01",
+                                "priority": 100,
+                                "ruleType": "FirewallPolicyFilterRule",
+                                "action": {
+                                    "type": "Allow"
+                                },
+                                "ruleConditions": [
+                                    {
+                                        "name": "Allow-msft",
+                                        "protocols": [
+                                            {
+                                                "protocolType": "http",
+                                                "port": 80
+                                            },
+                                            {
+                                                "protocolType": "https",
+                                                "port": 443
+                                            }
+                                        ],
+                                        "sourceAddresses": [
+                                            "*"
+                                        ],
+                                        "targetFqdns": [
+                                            "*.microsoft.com"
+                                        ],
+                                        "ruleConditionType": "ApplicationRuleCondition"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+        },
+        {
+            "type": "Microsoft.Network/azureFirewalls",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('vwanFirewallName')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualHubs', parameters('vwanHubName'))]",
+                "[resourceId('Microsoft.Network/firewallPolicies', parameters('firewallPolicyName'))]"
+            ],
+            "properties": {
+                "sku": {
+                    "name": "AZFW_Hub",
+                    "tier": "Standard"
+                },
+                "hubIPAddresses": {
+                                    "publicIPs": {
+                                        "count": 1
+                                    }
+                                },
+                "virtualHub": {
+                    "id": "[resourceId('Microsoft.Network/virtualHubs', parameters('vwanHubName'))]"
+                },
+                "firewallPolicy": {
+                    "id": "[resourceId('Microsoft.Network/firewallPolicies', parameters('firewallPolicyName'))]"
+                }
+            }
+        },
         {
             "name": "[parameters('aksVnetName')]",
             "type": "Microsoft.Network/virtualNetworks",
-            "apiVersion": "2019-11-01",
+            "apiVersion": "2020-05-01",
             "location": "[resourceGroup().location]",
             "tags": {
                 "displayName": "[parameters('aksVnetName')]"
@@ -69,14 +205,14 @@
             "properties": {
                 "addressSpace": {
                     "addressPrefixes": [
-                        "10.0.0.0/16"
+                        "10.1.0.0/16"
                     ]
                 },
                 "subnets": [
                     {
                         "name": "aksSubnet",
                         "properties": {
-                            "addressPrefix": "10.0.1.0/24"
+                            "addressPrefix": "10.1.1.0/24"
                         }
                     }
                 ]
@@ -85,7 +221,7 @@
         {
             "name": "[parameters('aksClusterName')]",
             "type": "Microsoft.ContainerService/managedClusters",
-            "apiVersion": "2020-02-01",
+            "apiVersion": "2020-06-01",
             "location": "[resourceGroup().location]",
              "sku": {
                 "name": "Basic",

@@ -5,6 +5,18 @@
         "vwanName": {
             "value": "maksh-vwan"
         },
+        "vwanHubName": {
+            "value": "maksh-vwan-secure-hub"
+        },
+        "firewallPolicyName": {
+            "value": "vwan-firewall-policy-name" 
+        },
+        "firewallPolicyRuleGroupName": {
+            "value": "vwan-firewall-rule-group-name" 
+        },
+        "vwanFirewallName": {
+            "value": "vwan-firewall-name"
+        },
         "aksVnetName": {
             "value": "aksVnet"
         },
