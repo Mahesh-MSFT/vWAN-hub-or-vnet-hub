@@ -12,10 +12,13 @@
             "value": "vwan-firewall-policy-name" 
         },
         "firewallPolicyRuleGroupName": {
-            "value": "vwan-firewall-rule-group-name" 
+            "value": "Policy-01/DefaultApplicationRuleCollectionGroup" 
         },
         "vwanFirewallName": {
             "value": "vwan-firewall-name"
+        },
+        "routeTableName": {
+            "value": "aks-subnet-route-table"
         },
         "aksVnetName": {
             "value": "aksVnet"

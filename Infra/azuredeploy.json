@@ -32,6 +32,12 @@
                 "description": "vWAN Firewall Name"
             }
         },
+        "routeTableName": {
+            "type": "string",
+            "metadata": {
+                "description": "AKS Route Table Name"
+            }
+        },
         "aksVnetName": { "type": "string", "metadata": { "description": "AKS VNET Name"} },
         "agentNodeCount": {
             "type": "int",
@@ -88,13 +94,12 @@
             "name": "[parameters('vwanHubName')]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks', parameters('aksVnetName'))]",
                 "[resourceId('Microsoft.Network/virtualWans', parameters('vwanName'))]"
             ],
             "properties": {
                 "virtualNetworkConnections": [
                     {
-                        "name": "hub-spoke",
+                        "name": "[concat('hub-spoke', parameters('aksVnetName'))]",
                         "properties": {
                             "remoteVirtualNetwork": {
                                 "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('aksVnetName'))]"
@@ -110,7 +115,7 @@
                     "id": "[resourceId('Microsoft.Network/virtualWans', parameters('vwanName'))]"
                 },
                 "azureFirewall": {
-                    "id": "[resourceId('Microsoft.Network/azureFirewalls', 'AzfwTest')]"
+                    "id": "[resourceId('Microsoft.Network/azureFirewalls', parameters('vwanFirewallName'))]"
                 }
             }
         },
@@ -129,8 +134,8 @@
             "name": "[parameters('firewallPolicyRuleGroupName')]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                            "[resourceId('Microsoft.Network/firewallPolicies',parameters('firewallPolicyName'))]"
-                    ],
+                "[resourceId('Microsoft.Network/firewallPolicies', parameters('firewallPolicyName'))]"
+            ],
             "properties": {
                 "priority": 300,
                     "rules": [
@@ -195,6 +200,28 @@
             }
         },
         {
+            "type": "Microsoft.Network/routeTables",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('routeTableName')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/azureFirewalls', parameters('vwanFirewallName'))]"
+            ],
+            "properties": {
+                "disableBgpRoutePropagation": false,
+                "routes": [
+                    {
+                        "name": "aks-route-table",
+                        "properties": {
+                            "addressPrefix": "0.0.0.0/0",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "[parameters('vwanFirewallName').ipConfigurations[0].properties.privateIPAddress]"
+                        }
+                    }
+                ]
+            }
+        },
+        {
             "name": "[parameters('aksVnetName')]",
             "type": "Microsoft.Network/virtualNetworks",
             "apiVersion": "2020-05-01",
@@ -211,10 +238,44 @@
                 "subnets": [
                     {
                         "name": "aksSubnet",
+                        "dependsOn": [
+                            "[resourceId('Microsoft.Network/routeTables', parameters('routeTableName'))]"
+                        ],
                         "properties": {
-                            "addressPrefix": "10.1.1.0/24"
+                            "addressPrefix": "10.1.1.0/24",
+                            "routeTable": {
+                                "id": "[resourceId('Microsoft.Network/routeTables',parameters('routeTableName'))]"
+                            }
                         }
                     }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualHubs/routeTables",
+            "apiVersion": "2020-05-01",
+            "name": "Hub-01/VirtualNetworkRouteTable",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualHubs', parameters('vwanHubName'))]",
+                "[resourceId('Microsoft.Network/azureFirewalls', parameters('vwanFirewallName'))]"
+            ],
+            "properties": {
+                "routes": [
+                {
+                   "destinationType": "CIDR",
+                        "destinations": [
+                            "10.1.0.0/24",
+                            "0.0.0.0/0"
+                                        ],
+                         "nextHopType": "IPAddress",
+                            "nextHops": [
+                                "10.0.64.4"
+                                        ]
+                                    }
+                 ],
+                "attachedConnections": [
+                    "All_Vnets"
                 ]
             }
         },
@@ -240,7 +301,8 @@
                         "vmSize": "Standard_DS2_v2",
                         "osType": "Linux",
                         "storageProfile": "ManagedDisks",
-                        "vnetSubnetID":"[variables('subnetId')]"
+                        "vnetSubnetID":"[variables('subnetId')]",
+                        "mode" : "System"
                     }
                 ],
                 "linuxProfile": {
@@ -260,8 +322,8 @@
                 "networkProfile": {
                     "networkPlugin": "azure",
                     "loadBalancerSku": "Standard",
-                    "serviceCidr": "10.0.1.0/24",
-                    "dnsServiceIP": "10.0.1.10",
+                    "serviceCidr": "10.1.1.0/24",
+                    "dnsServiceIP": "10.1.1.10",
                     "dockerBridgeCidr": "172.17.0.1/16",
                     "outboundType": "userDefinedRouting"
                 }
