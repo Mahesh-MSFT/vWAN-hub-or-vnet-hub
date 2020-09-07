@@ -2,13 +2,16 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "vnet-name": {
+        "vwanName": {
+            "value": "maksh-vwan"
+        },
+        "aksVnetName": {
             "value": "aksVnet"
         },
-        "agent-node-count": {
+        "agentNodeCount": {
             "value": 1
         },
-        "AKS-Cluster-Name": {
+        "aksClusterName": {
             "value": "maksh-aks-vwan"
         },
         "clientId": {

@@ -2,14 +2,20 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "vnet-name": { "type": "string", "metadata": { "description": "VNET Name"} },
-        "agent-node-count": {
+        "vwanName": {
+            "type": "string",
+            "metadata": {
+                "description": "Azure vWAN Name"
+            }
+        },
+        "aksVnetName": { "type": "string", "metadata": { "description": "AKS VNET Name"} },
+        "agentNodeCount": {
             "type": "int",
             "metadata": {
                 "description": "Agent Node Count Value"
             }
         },
-        "AKS-Cluster-Name": {
+        "aksClusterName": {
             "type": "string",
             "metadata": {
                 "description": "AKS Cluster Name"
@@ -36,16 +42,29 @@
     },
     "functions": [],
     "variables": {
-        "subnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets',parameters('vnet-name'),'aksSubnet')]"
+        "subnetId": "[resourceId(resourceGroup().name, 'Microsoft.Network/virtualNetworks/subnets',parameters('aksVnetName'),'aksSubnet')]"
     },
     "resources": [
         {
-            "name": "[parameters('vnet-name')]",
+            "type": "Microsoft.Network/virtualWans",
+            "apiVersion": "2019-08-01",
+            "name": "[parameters('vwanName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "disableVpnEncryption": false,
+                "allowBranchToBranchTraffic": true,
+                "allowVnetToVnetTraffic": true,
+                "office365LocalBreakoutCategory": "None",
+                "type": "Standard"
+            }
+        },
+        {
+            "name": "[parameters('aksVnetName')]",
             "type": "Microsoft.Network/virtualNetworks",
             "apiVersion": "2019-11-01",
             "location": "[resourceGroup().location]",
             "tags": {
-                "displayName": "[parameters('vnet-name')]"
+                "displayName": "[parameters('aksVnetName')]"
             },
             "properties": {
                 "addressSpace": {
@@ -64,7 +83,7 @@
             }
         },
         {
-            "name": "[parameters('AKS-Cluster-Name')]",
+            "name": "[parameters('aksClusterName')]",
             "type": "Microsoft.ContainerService/managedClusters",
             "apiVersion": "2020-02-01",
             "location": "[resourceGroup().location]",
@@ -73,7 +92,7 @@
                 "tier": "Free"
             },
             "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks',parameters('vnet-name'))]"
+                "[resourceId('Microsoft.Network/virtualNetworks',parameters('aksVnetName'))]"
             ],
             "properties": {
                 "kubernetesVersion": "1.16.13",
@@ -81,7 +100,7 @@
                 "agentPoolProfiles": [
                     {
                         "name": "agentpool",
-                        "count": "[parameters('agent-node-count')]",
+                        "count": "[parameters('agentNodeCount')]",
                         "vmSize": "Standard_DS2_v2",
                         "osType": "Linux",
                         "storageProfile": "ManagedDisks",
@@ -116,7 +135,7 @@
     "outputs": {
          "controlPlaneFQDN": {
             "type": "string",
-            "value": "[reference(parameters('AKS-Cluster-Name')).fqdn]"
+            "value": "[reference(parameters('aksClusterName')).fqdn]"
         }
     }
 }

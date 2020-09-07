@@ -1,0 +1,14 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "AzureUserSshPublicKey": {
+        "reference": {
+          "keyVault": {
+          "id": "/subscriptions/773b8e43-8ed2-4581-92ec-754830be7ba6/resourceGroups/hub-vnet-rg/providers/Microsoft.KeyVault/vaults/hub-keyvault-0616140807"
+          },
+          "secretName": "AzureUserSshPublicKey"
+        }
+      }
+    }
+  }

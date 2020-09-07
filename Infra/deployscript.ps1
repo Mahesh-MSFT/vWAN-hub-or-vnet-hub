@@ -18,7 +18,16 @@ az deployment group validate -g $rgName `
     --template-file azuredeploy.json `
     --parameters azuredeploy.parameters.json
 
-# Validate exisiting ARM
+# Validate exisiting ARM 1
 az deployment group validate -g $rgName `
     --template-file azuredeploy2.json `
     --parameters azuredeploy2.parameters.json
+
+# Validate exisiting ARM 2
+az deployment group validate -g $rgName `
+    --template-file .\ad.json 
+
+# Validate exisiting ARM 3
+az deployment group validate -g $rgName `
+    --template-file arm-aks.json `
+    --parameters .\arm-aks-parameters2.json

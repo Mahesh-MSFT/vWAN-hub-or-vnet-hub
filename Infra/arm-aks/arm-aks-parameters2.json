@@ -1,0 +1,9 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "AzureUserSshPublicKey": {
+        "value": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDORjnAv9GbEvOQv70+VZeFSKji7sXI+vHuCtCh6IVko1arejcWA2GqybM7MR3zuOGUB28dEb3CK6tbB0N62KmRnnCOatR/NOtjJnmhJGaunwRCsaPTuNtJX7lF3Rv9VG4k6BF+OM1Y1xDTRLrV04j7mPnkuwWC6M8oCusfnvQSnI3L2PiC3Xlkt1MYvIGLSJIMCFmb0owxH4p57Ioz/fUkpyFRHJephWs5ybk2YYr79Zo7pKOgQWZaWoINhRFzdDSulwlD+mi/4XZqhItYFET7dMRHWVB6eMm4TnHiVp6wjVTcd0WW+/egDb745UWBuoj/tiE1MHT+YX/YJ3WIq5E7"
+      }
+    }
+  }

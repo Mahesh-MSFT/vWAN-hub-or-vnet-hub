@@ -1,0 +1,378 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"managedClusterName": {
+			"type": "string",
+			"defaultValue": "fido-aks01-poc",
+			"metadata": {
+				"description": "The name of the Managed Cluster resource."
+			}
+		},
+		"location": {
+			"type": "string",
+			"defaultValue": "[resourceGroup().location]",
+			"metadata": {
+				"description": "The Azure location of the AKS resource."
+			}
+		},
+		"dnsPrefix": {
+			"type": "string",
+			"defaultValue": "fido-aks01-poc",
+			"metadata": {
+				"description": "Optional DNS prefix to use with hosted Kubernetes API server FQDN."
+			}
+		},
+		"osDiskSizeGB": {
+			"defaultValue": 100,
+			"minValue": 0,
+			"maxValue": 1023,
+			"type": "int",
+			"metadata": {
+				"description": "Disk size (in GB) to provision for each of the agent pool nodes. This value ranges from 0 to 1023. Specifying 0 will apply the default disk size for that agentVMSize."
+			}
+		},
+		"agentPoolName": {
+			"type": "string",
+			"defaultValue": "aksnodepool1",
+			"metadata": {
+				"description": "The name of the Node Pool."
+			}
+		},
+		"mgmtAgentPoolName": {
+			"type": "string",
+			"defaultValue": "mgmtnodepool",
+			"metadata": {
+				"description": "The name of the Node Pool."
+			}
+		},
+		"vmSetType": {
+			"type": "string",
+			"defaultValue": "VirtualMachineScaleSets",
+			"allowedValues": [
+				"VirtualMachineScaleSets",
+				"AvailabilitySet"
+			],
+			"metadata": {
+				"description": "The name of the Node Pool."
+			}
+		},
+		"agentCount": {
+			"defaultValue": 3,
+			"minValue": 1,
+			"maxValue": 50,
+			"type": "int",
+			"metadata": {
+				"description": "The number of agent nodes for the cluster. Production workloads have a recommended minimum of 3."
+			}
+		},
+		"MgmtAgentCount": {
+			"defaultValue": 3,
+			"minValue": 1,
+			"maxValue": 50,
+			"type": "int",
+			"metadata": {
+				"description": "The number of agent nodes for the cluster. Production workloads have a recommended minimum of 3."
+			}
+		},
+		"agentVMSize": {
+			"defaultValue": "Standard_D2_v2",
+			"type": "string",
+			"metadata": {
+				"description": "The size of the Virtual Machine."
+			}
+		},
+		"osType": {
+			"defaultValue": "Linux",
+			"allowedValues": [
+				"Linux"
+			],
+			"type": "string",
+			"metadata": {
+				"description": "The type of operating system."
+			}
+		},
+		"kubernetesVersion": {
+			"defaultValue": "1.15.11",
+			"type": "string",
+			"metadata": {
+				"description": "The version of Kubernetes."
+			}
+		},
+		"networkPlugin": {
+			"allowedValues": [
+				"azure",
+				"kubenet"
+			],
+			"defaultValue": "azure",
+			"type": "string",
+			"metadata": {
+				"description": "Network plugin used for building Kubernetes network."
+			}
+		},
+		"networkPolicy": {
+			"type": "string",
+			"defaultValue": "calico",
+			"metadata": {
+				"description": "network policy type"
+			}
+		},
+		"mgmtMaxPods": {
+			"defaultValue": 30,
+			"type": "int",
+			"metadata": {
+				"description": "Maximum number of pods that can run on a node."
+			}
+		},
+		"maxPods": {
+			"defaultValue": 30,
+			"type": "int",
+			"metadata": {
+				"description": "Maximum number of pods that can run on a node."
+			}
+		},
+		"maxCount": {
+			"defaultValue": 5,
+			"type": "int",
+			"metadata": {
+				"description": "Maximum nodes count used for autoscaler."
+			}
+		},
+		"mgmtMaxCount": {
+			"defaultValue": 5,
+			"type": "int",
+			"metadata": {
+				"description": "Maximum nodes count used for autoscaler."
+			}
+		},
+		"mgmtMinCount": {
+			"defaultValue": 3,
+			"type": "int",
+			"metadata": {
+				"description": "Minimum node count used for autoscaler."
+			}
+		},
+		"minCount": {
+			"defaultValue": 3,
+			"type": "int",
+			"metadata": {
+				"description": "Minimum node count used for autoscaler."
+			}
+		},
+		"existingVirtualNetworkName": {
+			"type": "string",
+			"defaultValue": "fido-vnet01-poc",
+			"metadata": {
+				"description": "Name of an existing VNET that will contain this AKS deployment."
+			}
+		},
+		"newVirtualNetworkName": {
+			"type": "string",
+			"defaultValue": "fido-vnet01-poc-new",
+			"metadata": {
+				"description": "Name of a new VNET that will contain this AKS deployment."
+			}
+		},
+		"existingVirtualNetworkResourceGroup": {
+			"type": "string",
+			"defaultValue": "fido-rg01-poc",
+			"metadata": {
+				"description": "Name of the existing VNET resource group"
+			}
+		},
+		"existingSubnetName": {
+			"type": "string",
+			"defaultValue": "default",
+			"metadata": {
+				"description": "Subnet name that will contain the App Service Environment"
+			}
+		},
+		"serviceCidr": {
+			"type": "string",
+			"defaultValue": "172.20.0.0/16",
+			"metadata": {
+				"description": "A CIDR notation IP range from which to assign service cluster IPs."
+			}
+		},
+		"dnsServiceIP": {
+			"type": "string",
+			"defaultValue": "172.20.0.10",
+			"metadata": {
+				"description": "Containers DNS server IP address."
+			}
+		},
+		"dockerBridgeCidr": {
+			"type": "string",
+			"defaultValue": "172.17.0.1/16",
+			"metadata": {
+				"description": "A CIDR notation IP for Docker bridge."
+			}
+		},
+		"resourceTags": {
+			"type": "object",
+			"defaultValue": {
+				"ApplicationId": "ap128586",
+				"createdBy": "a659028",
+				"Organization": "ECC",
+				"aksclustername": "[parameters('managedClusterName')]",
+				"Environment": "dev",
+				"akscluster": "true",
+				"csp": "azure",
+				"retainresource": "",
+				"Timestamp": "[utcNow('yyyy-MM-ddTHH:mm:ssZ')]"
+			}
+		},
+		"MgmtNodepoolTags": {
+			"type": "object",
+			"defaultValue": {
+				"ApplicationId": "ap128586",
+				"createdBy": "a659028",
+				"Organization": "ECC",
+				"aksclustername": "[parameters('managedClusterName')]",
+				"Environment": "dev",
+				"mgmtnodepool": "true",
+				"akscluster": "",
+				"noshutdown": "",
+				"csp": "azure",
+				"retainresource": "",
+				"Timestamp": "[utcNow('yyyy-MM-ddTHH:mm:ssZ')]"
+			}
+		},
+		"agentPoolImageVersion": {
+			"type": "string",
+			"defaultValue": "AKSUbuntu-1604-2020.06.10",
+			"metadata": {
+				"description": "Agent pool image version"
+			}
+		},
+		"mgmtAgentPoolImageVersion": {
+			"type": "string",
+			"defaultValue": "AKSUbuntu-1604-2020.06.10",
+			"metadata": {
+				"description": "Management agent pool image version"
+			}
+		},
+		"AzureUserSshPublicKey": {
+			"type": "string"
+		},
+		"adminUsername": {
+			"type": "string",
+			"defaultValue": "fidelityadmin",
+			"metadata": {
+				"description": "The name of admin user"
+			}
+		}
+	},
+	"variables": {
+		"vnetSubnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks/subnets',parameters('newVirtualNetworkName'),'aksSubnet')]"
+	},
+	"resources": [
+		{
+            "name": "[parameters('newVirtualNetworkName')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2019-11-01",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "displayName": "[parameters('newVirtualNetworkName')]"
+            },
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.0.0.0/16"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "aksSubnet",
+                        "properties": {
+                            "addressPrefix": "10.0.1.0/24"
+                        }
+                    }
+                ]
+            }
+        },
+		{
+			"type": "Microsoft.ContainerService/managedClusters",
+			"name": "[parameters('managedClusterName')]",
+			"apiVersion": "2020-02-01",
+			"identity": {
+				"type": "SystemAssigned"
+			},
+			"location": "[parameters('location')]",
+			"tags": "[parameters('resourceTags')]",
+			"dependsOn": [
+				"[resourceId('Microsoft.Network/virtualNetworks',parameters('newVirtualNetworkName'))]"
+			],
+			"properties": {
+				"kubernetesVersion": "[parameters('kubernetesVersion')]",
+				"dnsPrefix": "[parameters('dnsPrefix')]",
+				"agentPoolProfiles": [
+					{
+						"name": "[parameters('agentPoolName')]",
+						"tags": "[parameters('resourceTags')]",
+						"osDiskSizeGB": "[parameters('osDiskSizeGB')]",
+						"count": "[parameters('agentCount')]",
+						"vmSize": "[parameters('agentVMSize')]",
+						"osType": "[parameters('osType')]",
+						"storageProfile": "ManagedDisks",
+						"vnetSubnetID": "[variables('vnetSubnetID')]",
+						"maxPods": "[parameters('maxPods')]",
+						"type": "[parameters('vmSetType')]",
+						"availabilityZones": [ "1", "2", "3" ],
+						"maxCount": "[parameters('maxCount')]",
+						"minCount": "[parameters('minCount')]",
+						"enableAutoScaling": true,
+						"nodeImageVersion": "[parameters('agentPoolImageVersion')]"
+					},
+					{
+						"name": "[parameters('mgmtAgentPoolName')]",
+						"tags": "[parameters('MgmtNodepoolTags')]",
+						"osDiskSizeGB": "[parameters('osDiskSizeGB')]",
+						"count": "[parameters('MgmtAgentCount')]",
+						"vmSize": "[parameters('agentVMSize')]",
+						"osType": "[parameters('osType')]",
+						"storageProfile": "ManagedDisks",
+						"vnetSubnetID": "[variables('vnetSubnetID')]",
+						"maxPods": "[parameters('mgmtMaxPods')]",
+						"type": "[parameters('vmSetType')]",
+						"maxCount": "[parameters('mgmtMaxCount')]",
+						"minCount": "[parameters('mgmtMinCount')]",
+						"enableAutoScaling": true,
+						"nodeImageVersion": "[parameters('mgmtAgentPoolImageVersion')]"
+					}
+				],
+				"linuxProfile": {
+					"adminUsername": "[parameters('adminUsername')]",
+					"ssh": {
+						"publicKeys": [
+							{
+								"keyData": "[parameters('AzureUserSshPublicKey')]"
+							}
+						]
+					}
+				},
+				"addonProfiles": {
+					"kubeDashboard": {
+						"enabled": true
+					}
+				},
+				"nodeResourceGroup": "[concat('MC-dev-aks_', parameters('managedClusterName'), '_eastus2')]",
+				"networkProfile": {
+					"networkPlugin": "[parameters('networkPlugin')]",
+					"serviceCidr": "[parameters('serviceCidr')]",
+					"dnsServiceIP": "[parameters('dnsServiceIP')]",
+					"networkPolicy": "[parameters('networkPolicy')]",
+					"loadBalancerSku": "standard",
+					"outboundType": "userDefinedRouting",
+					"dockerBridgeCidr": "[parameters('dockerBridgeCidr')]"
+				}
+			}
+		}
+	],
+	"outputs": {
+		"AzureUserSshPublicKey": {
+			"type": "string",
+			"value": "[parameters('AzureUserSshPublicKey')]"
+		}
+	}
+}
