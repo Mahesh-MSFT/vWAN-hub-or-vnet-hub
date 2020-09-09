@@ -4,6 +4,36 @@
     "parameters": {
         "vnetName": {
             "value": "hubvnet"
+        },
+        "vnetAddressPrefix": {
+            "value": "192.168.100.0/24"
+        },
+        "gatewaySubnetPrefix": {
+            "value": "192.168.100.16/28"
+        },
+        "gatewayPublicIPName": {
+            "value": "gatewayPIP"
+        },
+        "gatewayName": {
+            "value": "hubvnetGateway"
+        },
+        "gatewaySku": {
+            "value": "Basic"
+        },
+        "vpnClientAddressPoolPrefix": {
+            "value": "10.10.8.0/24"
+        },
+        "clientRootCertName": {
+            "value": "RootCert1"
+        },
+        "clientRootCertData": {
+            "value": "TBD"
+        },
+        "revokedCertName": {
+            "value": "TBD"
+        },
+        "revokedCertThumbprint": {
+            "value": "TBD"
         }
     }
 }

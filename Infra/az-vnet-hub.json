@@ -7,39 +7,157 @@
             "metadata": {
                 "description": "VNET Name"
             }
+            },
+        "vnetAddressPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "VNET Name"
+            }
+        },
+        "gatewaySubnetPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Gateway Subnet Prefix"
+            }
+        },
+        "gatewayPublicIPName": {
+            "type": "string",
+            "metadata": {
+                "description": "Gateway PublicIP Name"
+            }
+        },
+        "gatewayName": {
+            "type": "string",
+            "metadata": {
+                "description": "Gateway Name"
+            }
+        },
+        "gatewaySku": {
+            "type": "string",
+            "metadata": {
+                "description": "Gateway Sku"
+            }
+        },
+        "vpnClientAddressPoolPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "VPN Client Address Pool Prefix"
+            }
+        },
+        "clientRootCertName": {
+            "type": "string",
+            "metadata": {
+                "description": "Client Root CertName"
+            }
+        },
+        "clientRootCertData": {
+            "type": "string",
+            "metadata": {
+                "description": "Client Root Cert Data"
+            }
+        },
+        "revokedCertName": {
+            "type": "string",
+            "metadata": {
+                "description": "Revoked Cert Name"
+            }
+        },
+        "revokedCertThumbprint": {
+            "type": "string",
+            "metadata": {
+                "description": "Revoked Cert Thumbprint"
+            }
         }
     },
     "functions": [],
-    "variables": {},
+    "variables": {
+        "gatewaySubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), 'GatewaySubnet')]"
+    },
     "resources": [
         {
-            "name": "[parameters('vnetName')]",
+            "apiVersion": "2018-04-01",
             "type": "Microsoft.Network/virtualNetworks",
-            "apiVersion": "2019-11-01",
+            "name": "[parameters('vnetName')]",
             "location": "[resourceGroup().location]",
-            "tags": {
-                "displayName": "[parameters('vnetName')]"
-            },
             "properties": {
-                "addressSpace": {
-                    "addressPrefixes": [
-                        "10.0.0.0/16"
-                    ]
-                },
-                "subnets": [
-                    {
-                        "name": "Subnet-1",
-                        "properties": {
-                            "addressPrefix": "10.0.0.0/24"
-                        }
-                    },
-                    {
-                        "name": "Subnet-2",
-                        "properties": {
-                            "addressPrefix": "10.0.1.0/24"
+            "addressSpace": {
+                "addressPrefixes": [
+                "[parameters('vnetAddressPrefix')]"
+                ]
+            },
+            "subnets": [
+                {
+                "name": "GatewaySubnet",
+                "properties": {
+                    "addressPrefix": "[parameters('gatewaySubnetPrefix')]"
                         }
                     }
                 ]
+            }
+        },
+        {
+            "apiVersion": "2018-04-01",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[parameters('gatewayPublicIPName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+            "publicIPAllocationMethod": "Dynamic"
+            }
+        },
+        {
+            "apiVersion": "2018-04-01",
+            "type": "Microsoft.Network/virtualNetworkGateways",
+            "name": "[parameters('gatewayName')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIPAddresses/', parameters('gatewayPublicIPName'))]",
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('vnetName'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                    "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                            "id": "[variables('gatewaySubnetRef')]"
+                        },
+                        "publicIPAddress": {
+                            "id": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('gatewayPublicIPName'))]"
+                            }
+                        },
+                        "name": "vnetGatewayConfig"
+                    }
+                ],
+                "sku": {
+                    "name": "[parameters('gatewaySku')]",
+                    "tier": "[parameters('gatewaySku')]"
+                },
+                "gatewayType": "Vpn",
+                "vpnType": "RouteBased",
+                "enableBgp": false,
+                "vpnClientConfiguration": {
+                    "vpnClientAddressPool": {
+                        "addressPrefixes": [
+                            "[parameters('vpnClientAddressPoolPrefix')]"
+                        ]
+                    },
+                     "vpnClientRootCertificates": [
+                        {
+                            "name": "[parameters('clientRootCertName')]",
+                            "properties": {
+                                "PublicCertData": "[parameters('clientRootCertData')]"
+                            }
+                        }
+                    ],
+                     "vpnClientRevokedCertificates": [
+                        {
+                            "name": "[parameters('revokedCertName')]",
+                            "properties": {
+                                "Thumbprint": "[parameters('revokedCertThumbprint')]"
+                            }
+                        }
+                    ]
+                }
             }
         }
     ],
