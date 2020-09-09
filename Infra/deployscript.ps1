@@ -31,3 +31,8 @@ az deployment group validate -g $rgName `
 az deployment group validate -g $rgName `
     --template-file arm-aks.json `
     --parameters .\arm-aks-parameters2.json
+
+# Validate Hub VNET
+az deployment group validate -g $rgName `
+    --template-file az-vnet-hub.json `
+    --parameters az-vnet-hub-param.json
