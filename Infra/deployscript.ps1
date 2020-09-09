@@ -34,5 +34,5 @@ az deployment group validate -g $rgName `
 
 # Validate Hub VNET
 az deployment group validate -g $rgName `
-    --template-file az-vnet-hub.json `
-    --parameters az-vnet-hub-param.json
+    --template-file .\Infra\az-vnet-hub.json `
+    --parameters .\Infra\az-vnet-hub-param.json
