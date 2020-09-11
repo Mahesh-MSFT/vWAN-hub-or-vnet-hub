@@ -27,13 +27,7 @@
             "value": "RootCert1"
         },
         "clientRootCertData": {
-            "value": "TBD"
-        },
-        "revokedCertName": {
-            "value": "TBD"
-        },
-        "revokedCertThumbprint": {
-            "value": "TBD"
+            "value": "MIIC8TCCAdmgAwIBAgIQQUxTB94Q2LZB93LVh/qi1TANBgkqhkiG9w0BAQsFADAbMRkwFwYDVQQDDBBtYWtzaFAyU1Jvb3RDZXJ0MB4XDTIwMDkxMTE2MDk0M1oXDTIxMDkxMTE2Mjk0M1owGzEZMBcGA1UEAwwQbWFrc2hQMlNSb290Q2VydDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANyXh+n/2+jfI5HR2RSIusxCRHEQvbJ3gzzBpd6gfDh+Sk14nHv+8j2bnXXfu+qCoRSui9F3GHsvduN6sGLWFfDL1d4NNDDT+Vf3uFFzrM/C+DPYyODCPBIg8VkmOLkwsiW1zOYgxIPBmDdiuKz8fEX5dO4PT1QgHQQKVg36bqnmOsiyKhCcjFQp2VKH6NXBDl9j4AYtyOO0JLtVIdd9EBx/6A1ORusLpdrkZAbkpiUQPi0/4CAcZLhCLSg3SG4T+gLyWaGoXCKClQ6PhrfGOOkH1BS15XCBlBwwusCUVTOs3ThEKwxxq7kqW0V6L/o0WTT0bkugp9klU0DW51PSZwUCAwEAAaMxMC8wDgYDVR0PAQH/BAQDAgIEMB0GA1UdDgQWBBSv50t0PYnx+Er3hp3+iBBXWLkiYzANBgkqhkiG9w0BAQsFAAOCAQEAVJtN0XqY7LyzZ0Sf7Qso5NKCP1PWsqcWyD6uOzaVeu1cVdbXyr6XlP21LpJ5RAZL8YDKOzeKynsw+3e6vXnhWG1ybz9Fk0enrYWrmI+AIJicDWgCcu2JX6O9SWwEnxxWxnIKctrADX7mGfFaZUx5BWx0ywxJR7Ta7GFjbkVoHMSlO0/+5tYI28iulzOKXVd0EiJTA7aQq0cQl+IIv8btOau3X77jrhV8stqvpWr/OZh0nUvdABrVx/7OnQSBvWaCAc1G51J0mz2T2zbAWrL6WqO9e2NNFQ2r7SOTlNoLqyn+TYwqOrUbT7+WOuGwKX+gPp+XgebefukqqH+pZKXo1w=="
         }
     }
 }

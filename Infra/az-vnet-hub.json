@@ -55,18 +55,6 @@
             "metadata": {
                 "description": "Client Root Cert Data"
             }
-        },
-        "revokedCertName": {
-            "type": "string",
-            "metadata": {
-                "description": "Revoked Cert Name"
-            }
-        },
-        "revokedCertThumbprint": {
-            "type": "string",
-            "metadata": {
-                "description": "Revoked Cert Thumbprint"
-            }
         }
     },
     "functions": [],
@@ -146,14 +134,6 @@
                             "name": "[parameters('clientRootCertName')]",
                             "properties": {
                                 "PublicCertData": "[parameters('clientRootCertData')]"
-                            }
-                        }
-                    ],
-                     "vpnClientRevokedCertificates": [
-                        {
-                            "name": "[parameters('revokedCertName')]",
-                            "properties": {
-                                "Thumbprint": "[parameters('revokedCertThumbprint')]"
                             }
                         }
                     ]
