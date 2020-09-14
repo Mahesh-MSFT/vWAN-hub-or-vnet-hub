@@ -37,6 +37,15 @@
         },
         "spoke1SubnetAddressPrefix": {
             "value": "192.168.200.0/26"
+        },
+        "storageAccountName": {
+            "value": "vwanhubttorage"
+        },
+        "spoke1Vm1Name": {
+            "value": "spoke1vm1"
+        },
+        "vm1-spoke1-nic": {
+            "value": "vm1-spoke1-nic"
         }
     }
 }

@@ -73,11 +73,32 @@
             "metadata": {
                 "description": "Spoke 1 Subnet Address Prefix"
             }
+        },
+        "storageAccountName": {
+            "type": "string",
+            "metadata": {
+                "description": "Storage Account Name"
+            }
+        },
+        "spoke1Vm1Name": {
+            "type": "string",
+            "metadata": {
+                "description": "Spoke 1 VM 1 Name"
+            }
+        },
+        "vm1-spoke1-nic": {
+            "type": "string",
+            "metadata": {
+                "description": "VM1-Spoke1-nic"
+            }
         }
     },
     "functions": [],
     "variables": {
-        "gatewaySubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('hubVnetName'), 'GatewaySubnet')]"
+        "gatewaySubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('hubVnetName'), 'GatewaySubnet')]",
+        "SpokevNettoHubvNetPeeringName": "[concat(parameters('spoke1VnetName'), '-', parameters('hubVnetName'))]",
+        "HubvNettoSpokevNetPeeringName": "[concat(parameters('hubVnetName'), '-', parameters('spoke1VnetName'))]",
+        "Spoke1VM1SubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets/', parameters('spoke1VnetName'), 'default')]"
     },
     "resources": [
         {
@@ -93,13 +114,35 @@
             },
             "subnets": [
                 {
-                "name": "GatewaySubnet",
-                "properties": {
-                    "addressPrefix": "[parameters('gatewaySubnetPrefix')]"
+                    "name": "GatewaySubnet",
+                    "properties": {
+                        "addressPrefix": "[parameters('gatewaySubnetPrefix')]"
+                            }
+                        }
+                ]
+            },
+            "resources": [
+                {
+                    "apiVersion": "2020-05-01",
+                    "type": "virtualNetworkPeerings",
+                    "name": "[variables('HubvNettoSpokevNetPeeringName')]",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Network/virtualNetworks/', parameters('hubVnetName'))]",
+                        "[resourceId('Microsoft.Network/virtualNetworks/', parameters('spoke1VnetName'))]"
+                    ],
+                    "comments": "Peering from Hub vNet to Spoke vNet",
+                    "properties": {
+                        "allowVirtualNetworkAccess": true,
+                        "allowForwardedTraffic": false,
+                        "allowGatewayTransit": false,
+                        "useRemoteGateways": false,
+                        "remoteVirtualNetwork": {
+                            "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('spoke1VnetName'))]"
                         }
                     }
-                ]
-            }
+                }
+            ]
         },
         {
             "apiVersion": "2018-04-01",
@@ -180,8 +223,108 @@
                         }
                     }
                 ]
+            },
+            "resources": [
+                {
+                    "apiVersion": "2020-05-01",
+                    "type": "virtualNetworkPeerings",
+                    "name": "[variables('SpokevNettoHubvNetPeeringName')]",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Network/virtualNetworks/', parameters('hubVnetName'))]",
+                        "[resourceId('Microsoft.Network/virtualNetworks/', parameters('spoke1VnetName'))]"
+                    ],
+                    "comments": "Peering from Spoke vNet to Hub vNet",
+                    "properties": {
+                        "allowVirtualNetworkAccess": true,
+                        "allowForwardedTraffic": false,
+                        "allowGatewayTransit": false,
+                        "useRemoteGateways": false,
+                        "remoteVirtualNetwork": {
+                            "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('hubVnetName'))]"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "apiVersion": "2015-06-15",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[parameters('vm1-spoke1-nic')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('spoke1VnetName'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[variables('Spoke1VM1SubnetRef')]"
+                            }
+                        }
+                    }
+                ]
             }
-        }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[parameters('storageAccountName')]",
+            "apiVersion": "2019-06-01",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "kind": "Storage",
+            "properties": {}
+        },
+        {
+            "apiVersion": "2017-03-30",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[parameters('spoke1Vm1Name')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]",
+                "[concat('Microsoft.Network/networkInterfaces/', parameters('vm1-spoke1-nic'))]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                "vmSize": "Standard_A2_v2"
+                },
+            "osProfile": {
+                "computerName": "[parameters('spoke1Vm1Name')]",
+                "adminUsername": "spoke1vm1-uid",
+                "adminPassword": "P@ssw0rd1234"
+            },
+            "storageProfile": {
+                "imageReference": {
+                    "publisher": "MicrosoftWindowsServer",
+                    "offer": "WindowsServer",
+                    "sku": "2012-R2-Datacenter",
+                    "version": "latest"
+                },
+                "osDisk": {
+                    "name": "[concat(parameters('spoke1Vm1Name'),'_OSDisk')]", 
+                    "caching": "ReadWrite",
+                    "createOption": "FromImage"
+                    }
+            },
+            "networkProfile": {
+                "networkInterfaces": [
+                        {
+                        "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('vm1-spoke1-nic'))]"
+                        }
+                    ]
+                }
+            }
+        }   
     ],
-    "outputs": {}
+    "outputs": {
+        "networkInterface": {
+            "type": "string",
+            "value": "[reference(concat(parameters('vm1-spoke1-nic'))).ipConfigurations[0].properties.privateIPAddress]"
+        }
+    }
 }
