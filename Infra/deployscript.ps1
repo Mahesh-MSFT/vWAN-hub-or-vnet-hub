@@ -40,7 +40,15 @@ az deployment group validate -g $rgName `
 
 # Deploy Hub VNET ARM template
 az deployment group create `
-    -n deploymentName `
+    -n $deploymentName `
     -g $rgName `
     --template-file .\Infra\az-vnet-hub.json `
     --parameters .\Infra\az-vnet-hub-param.json
+
+# After the Azure Resources are created, generate & download the VPN client
+# Get-AzureRmVpnClientPackage -ResourceGroupName $RG -VirtualNetworkGatewayName $GWName -ProcessorArchitecture Amd64
+az network vnet-gateway vpn-client generate -n hubvnetGateway `
+    --processor-architecture Amd64 `
+    -g $rgName
+    
+az network vnet-gateway vpn-client show-url -g $rgName -n hubvnetGateway

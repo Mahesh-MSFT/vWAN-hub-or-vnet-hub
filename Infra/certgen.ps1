@@ -21,7 +21,7 @@ New-SelfSignedCertificate -Type Custom -DnsName makshP2SChildCert -KeySpec Signa
 # I forgot to declare variable above. Below is how to get access to cleint cert. If you declare it as part of creation itself, this is optional
 $clientCert = Get-ChildItem -Path "Cert:\CurrentUser\My\39E4AC16BBA18D6EA42306DD79C24C4D36C84AF6"
 
-# export client certificate
+# Export client certificate
 $myclientpwd = ConvertTo-SecureString -String "1234" -Force -AsPlainText
 Export-PfxCertificate -Password $myclientpwd -Cert (get-item -Path Cert:\CurrentUser\My\$($clientCert.Thumbprint)) -FilePath myp2svpnclientCert.pfx
 
