@@ -2,16 +2,16 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "vnetName": {
+        "hubVnetName": {
             "type": "string",
             "metadata": {
-                "description": "VNET Name"
+                "description": "Hub VNET Name"
             }
             },
-        "vnetAddressPrefix": {
+        "hubVnetAddressPrefix": {
             "type": "string",
             "metadata": {
-                "description": "VNET Name"
+                "description": "Hub VNET Address Prefix"
             }
         },
         "gatewaySubnetPrefix": {
@@ -55,22 +55,40 @@
             "metadata": {
                 "description": "Client Root Cert Data"
             }
+        },
+        "spoke1VnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "Spoke 1 VNET Name"
+            }
+        },
+        "spoke1VnetAddressPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Spoke 1 VNET Address Prefix"
+            }
+        },
+        "spoke1SubnetAddressPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Spoke 1 Subnet Address Prefix"
+            }
         }
     },
     "functions": [],
     "variables": {
-        "gatewaySubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), 'GatewaySubnet')]"
+        "gatewaySubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('hubVnetName'), 'GatewaySubnet')]"
     },
     "resources": [
         {
             "apiVersion": "2018-04-01",
             "type": "Microsoft.Network/virtualNetworks",
-            "name": "[parameters('vnetName')]",
+            "name": "[parameters('hubVnetName')]",
             "location": "[resourceGroup().location]",
             "properties": {
             "addressSpace": {
                 "addressPrefixes": [
-                "[parameters('vnetAddressPrefix')]"
+                "[parameters('hubVnetAddressPrefix')]"
                 ]
             },
             "subnets": [
@@ -99,7 +117,7 @@
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[concat('Microsoft.Network/publicIPAddresses/', parameters('gatewayPublicIPName'))]",
-                "[concat('Microsoft.Network/virtualNetworks/', parameters('vnetName'))]"
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('hubVnetName'))]"
             ],
             "properties": {
                 "ipConfigurations": [
@@ -138,6 +156,30 @@
                         }
                     ]
                 }
+            }
+        },
+        {
+            "apiVersion": "2018-04-01",
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('spoke1VnetName')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+               "[concat('Microsoft.Network/virtualNetworks/', parameters('hubVnetName'))]"
+            ],
+            "properties": {
+            "addressSpace": {
+                "addressPrefixes": [
+                "[parameters('spoke1VnetAddressPrefix')]"
+                ]
+            },
+            "subnets": [
+                {
+                "name": "default",
+                "properties": {
+                    "addressPrefix": "[parameters('spoke1SubnetAddressPrefix')]"
+                        }
+                    }
+                ]
             }
         }
     ],
