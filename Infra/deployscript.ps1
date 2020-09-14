@@ -1,5 +1,6 @@
 $rgName="vwanaks-rg"
 $location="uksouth"
+$deploymentName="vwanaks-deployment"
 $APP_ID=$(az keyvault secret show --name "clientid" --vault-name "maksh-key-vault" --query value)
 $APP_SECRET=$(az keyvault secret show --name "clientsecret" --vault-name "maksh-key-vault" --query value)
 $TENANT_ID=$(az keyvault secret show --name "tenantid" --vault-name "maksh-key-vault" --query value)
@@ -32,7 +33,14 @@ az deployment group validate -g $rgName `
     --template-file arm-aks.json `
     --parameters .\arm-aks-parameters2.json
 
-# Validate Hub VNET
+# Validate Hub VNET ARM template
 az deployment group validate -g $rgName `
+    --template-file .\Infra\az-vnet-hub.json `
+    --parameters .\Infra\az-vnet-hub-param.json
+
+# Deploy Hub VNET ARM template
+az deployment group create `
+    -n deploymentName `
+    -g $rgName `
     --template-file .\Infra\az-vnet-hub.json `
     --parameters .\Infra\az-vnet-hub-param.json
