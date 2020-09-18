@@ -218,14 +218,14 @@
             },
             "subnets": [
                 {
-                "name": "default",
-                "properties": {
-                    "addressPrefix": "[parameters('spoke1SubnetAddressPrefix')]"
-                        },
-                    "networkSecurityGroups": {
-                        "id": "[resourceId('Microsoft.Network/networkSecurityGroups', 'spoke-vnet1-subnet-nsg')]"
-                    }
-                    }
+                    "name": "default",
+                    "properties": {
+                        "addressPrefix": "[parameters('spoke1SubnetAddressPrefix')]",
+                        "networkSecurityGroup": {
+                            "id": "[resourceId('Microsoft.Network/networkSecurityGroups', 'spoke-vnet1-subnet-nsg')]"
+                        }
+                    }   
+                }
                 ]
             },
             "resources": [
