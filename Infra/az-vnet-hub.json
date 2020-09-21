@@ -91,13 +91,33 @@
             "metadata": {
                 "description": "VM1-Spoke1-nic"
             }
+        },
+        "spoke2VnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "Spoke 2 VNET Name"
+            }
+        },
+        "spoke2VnetAddressPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Spoke 2 VNET Address Prefix"
+            }
+        },
+        "spoke2SubnetAddressPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Spoke 2 Subnet Address Prefix"
+            }
         }
     },
     "functions": [],
     "variables": {
         "gatewaySubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('hubVnetName'), 'GatewaySubnet')]",
-        "SpokevNettoHubvNetPeeringName": "[concat(parameters('spoke1VnetName'), '-', parameters('hubVnetName'))]",
-        "HubvNettoSpokevNetPeeringName": "[concat(parameters('hubVnetName'), '-', parameters('spoke1VnetName'))]",
+        "SpokevNet1toHubvNetPeeringName": "[concat(parameters('spoke1VnetName'), '-', parameters('hubVnetName'))]",
+        "HubvNettoSpokevNet1PeeringName": "[concat(parameters('hubVnetName'), '-', parameters('spoke1VnetName'))]",
+        "SpokevNet2toHubvNetPeeringName": "[concat(parameters('spoke2VnetName'), '-', parameters('hubVnetName'))]",
+        "HubvNettoSpokevNet2PeeringName": "[concat(parameters('hubVnetName'), '-', parameters('spoke2VnetName'))]",
         "Spoke1VM1SubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets/', parameters('spoke1VnetName'), 'default')]"
     },
     "resources": [
@@ -125,13 +145,13 @@
                 {
                     "apiVersion": "2020-05-01",
                     "type": "virtualNetworkPeerings",
-                    "name": "[variables('HubvNettoSpokevNetPeeringName')]",
+                    "name": "[variables('HubvNettoSpokevNet1PeeringName')]",
                     "location": "[resourceGroup().location]",
                     "dependsOn": [
                         "[resourceId('Microsoft.Network/virtualNetworks/', parameters('hubVnetName'))]",
                         "[resourceId('Microsoft.Network/virtualNetworks/', parameters('spoke1VnetName'))]"
                     ],
-                    "comments": "Peering from Hub vNet to Spoke vNet",
+                    "comments": "Peering from Hub vNet to Spoke vNet 1",
                     "properties": {
                         "allowVirtualNetworkAccess": true,
                         "allowForwardedTraffic": false,
@@ -141,6 +161,26 @@
                             "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('spoke1VnetName'))]"
                         }
                     }
+                },
+                {
+                    "apiVersion": "2020-05-01",
+                    "type": "virtualNetworkPeerings",
+                    "name": "[variables('HubvNettoSpokevNet2PeeringName')]",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Network/virtualNetworks/', parameters('hubVnetName'))]",
+                        "[resourceId('Microsoft.Network/virtualNetworks/', parameters('spoke2VnetName'))]"
+                    ],
+                    "comments": "Peering from Hub vNet to Spoke vNet 2",
+                    "properties": {
+                        "allowVirtualNetworkAccess": true,
+                        "allowForwardedTraffic": false,
+                        "allowGatewayTransit": true,
+                        "useRemoteGateways": false,
+                        "remoteVirtualNetwork": {
+                            "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('spoke2VnetName'))]"
+                        }
+                    } 
                 }
             ]
         },
@@ -232,13 +272,13 @@
                 {
                     "apiVersion": "2020-05-01",
                     "type": "virtualNetworkPeerings",
-                    "name": "[variables('SpokevNettoHubvNetPeeringName')]",
+                    "name": "[variables('SpokevNet1toHubvNetPeeringName')]",
                     "location": "[resourceGroup().location]",
                     "dependsOn": [
                         "[resourceId('Microsoft.Network/virtualNetworks/', parameters('hubVnetName'))]",
                         "[resourceId('Microsoft.Network/virtualNetworks/', parameters('spoke1VnetName'))]"
                     ],
-                    "comments": "Peering from Spoke vNet to Hub vNet",
+                    "comments": "Peering from Spoke vNet 1 to Hub vNet",
                     "properties": {
                         "allowVirtualNetworkAccess": true,
                         "allowForwardedTraffic": false,
@@ -347,6 +387,80 @@
                     ]
                 }
             }
+        },
+        {
+            
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2019-08-01",
+            "name": "spoke-vnet2-subnet-nsg",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "securityRules": [
+                {
+                    "name": "default-allow-3389",
+                    "properties": {
+                    "priority": 1000,
+                    "access": "Allow",
+                    "direction": "Inbound",
+                    "destinationPortRange": "3389",
+                    "protocol": "Tcp",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*",
+                    "destinationAddressPrefix": "*"
+                    }
+                }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2020-05-01",
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('spoke2VnetName')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+               "[concat('Microsoft.Network/virtualNetworks/', parameters('hubVnetName'))]",
+               "[resourceId('Microsoft.Network/networkSecurityGroups', 'spoke-vnet2-subnet-nsg')]"
+            ],
+            "properties": {
+            "addressSpace": {
+                "addressPrefixes": [
+                "[parameters('spoke2VnetAddressPrefix')]"
+                ]
+            },
+            "subnets": [
+                {
+                    "name": "default",
+                    "properties": {
+                        "addressPrefix": "[parameters('spoke2SubnetAddressPrefix')]",
+                        "networkSecurityGroup": {
+                            "id": "[resourceId('Microsoft.Network/networkSecurityGroups', 'spoke-vnet2-subnet-nsg')]"
+                        }
+                    }   
+                }
+                ]
+            },
+            "resources": [
+                {
+                    "apiVersion": "2020-05-01",
+                    "type": "virtualNetworkPeerings",
+                    "name": "[variables('SpokevNet2toHubvNetPeeringName')]",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Network/virtualNetworks/', parameters('hubVnetName'))]",
+                        "[resourceId('Microsoft.Network/virtualNetworks/', parameters('spoke2VnetName'))]"
+                    ],
+                    "comments": "Peering from Spoke vNet 2 to Hub vNet",
+                    "properties": {
+                        "allowVirtualNetworkAccess": true,
+                        "allowForwardedTraffic": false,
+                        "allowGatewayTransit": false,
+                        "useRemoteGateways": true,
+                        "remoteVirtualNetwork": {
+                            "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('hubVnetName'))]"
+                        }
+                    }
+                }
+            ]
         }   
     ],
     "outputs": {

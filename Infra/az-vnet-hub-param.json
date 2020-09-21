@@ -46,6 +46,15 @@
         },
         "vm1-spoke1-nic": {
             "value": "vm1-spoke1-nic"
+        },
+        "spoke2VnetName": {
+            "value": "spoke2Vnet"
+        },
+        "spoke2VnetAddressPrefix": {
+            "value": "192.168.250.0/24"
+        },
+        "spoke2SubnetAddressPrefix": {
+            "value": "192.168.250.0/26"
         }
     }
 }
