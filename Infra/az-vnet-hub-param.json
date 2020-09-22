@@ -55,6 +55,12 @@
         },
         "spoke2SubnetAddressPrefix": {
             "value": "192.168.250.0/26"
+        },
+        "vm1-spoke2-nic": {
+            "value": "vm1-spoke2-nic"
+        },
+        "spoke2Vm1Name": {
+            "value": "spoke2vm1"
         }
     }
 }
