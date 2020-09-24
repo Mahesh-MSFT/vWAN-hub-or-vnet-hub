@@ -61,6 +61,15 @@
         },
         "spoke2Vm1Name": {
             "value": "spoke2vm1"
+        },
+        "vwanName": {
+            "value": "vwan"
+        },
+        "vWanHubName": {
+            "value": "vwanHub"
+        },
+        "vwanHubAddressPrefix": {
+            "value": "192.168.150.0/24"
         }
     }
 }
