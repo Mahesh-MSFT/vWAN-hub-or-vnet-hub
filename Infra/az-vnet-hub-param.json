@@ -70,6 +70,9 @@
         },
         "vwanHubAddressPrefix": {
             "value": "192.168.150.0/24"
+        },
+        "vwanP2SVpnGatewayName": {
+            "value": "vwanHubVnetGateway"
         }
     }
 }

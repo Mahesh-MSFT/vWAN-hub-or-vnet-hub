@@ -139,6 +139,12 @@
             "metadata": {
                 "description": "vWAN Hub Address Prefix"
             }
+        },
+        "vwanP2SVpnGatewayName": {
+            "type": "string",
+            "metadata": {
+                "description": "vWAN P2S VPN Gateway Name"
+            }
         }
     },
     "functions": [],
@@ -577,7 +583,115 @@
                 "addressPrefix": "[parameters('vwanHubAddressPrefix')]",
                 "virtualWan": {
                     "id": "[resourceId('Microsoft.Network/virtualWans',parameters('vwanName'))]"
-                }
+                },
+                 "p2SVpnGateway": {
+                    "id": "[resourceId('Microsoft.Network/p2sVpnGateways', parameters('vwanP2SVpnGatewayName'))]"
+                },
+                "sku": "Standard"
+            }
+        },
+        {
+            "type": "Microsoft.Network/vpnServerConfigurations",
+            "apiVersion": "2020-05-01",
+            "name": "vwan-p2s-vpn-config",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "vpnProtocols": [
+                    "IkeV2"
+                ],
+                "vpnAuthenticationTypes": [
+                    "Certificate"
+                ],
+                "vpnClientRootCertificates": [
+                    {
+                        "name": "[parameters('clientRootCertName')]",
+                        "publicCertData": "[parameters('clientRootCertData')]"
+                    }
+                ],
+                "vpnClientRevokedCertificates": [],
+                "radiusServers": [],
+                "radiusServerRootCertificates": [],
+                "radiusClientRootCertificates": [],
+                "vpnClientIpsecPolicies": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualHubs/hubRouteTables",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('vWanHubName'), '/defaultRouteTable')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualHubs', parameters('vWanHubName'))]"
+            ],
+            "properties": {
+                "routes": [],
+                "labels": [
+                    "default"
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualHubs/hubRouteTables",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('vWanHubName'), '/noneRouteTable')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualHubs', parameters('vWanHubName'))]"
+            ],
+            "properties": {
+                "routes": [],
+                "labels": [
+                    "none"
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/p2sVpnGateways",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('vwanP2SVpnGatewayName')]",
+            "location": "uksouth",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualHubs', parameters('vWanHubName'))]",
+                "[resourceId('Microsoft.Network/vpnServerConfigurations', 'vwan-p2s-vpn-config')]",
+                "[resourceId('Microsoft.Network/virtualHubs/hubRouteTables', parameters('vWanHubName'), 'defaultRouteTable')]"
+            ],
+            "properties": {
+                "virtualHub": {
+                    "id": "[resourceId('Microsoft.Network/virtualHubs', parameters('vWanHubName'))]"
+                },
+                "vpnServerConfiguration": {
+                    "id": "[resourceId('Microsoft.Network/vpnServerConfigurations', 'vwan-p2s-vpn-config')]"
+                },
+                "p2SConnectionConfigurations": [
+                    {
+                        "name": "P2SConnectionConfigDefault",
+                        "properties": {
+                            "routingConfiguration": {
+                                "associatedRouteTable": {
+                                    "id": "[resourceId('Microsoft.Network/virtualHubs/hubRouteTables', parameters('vWanHubName'), 'defaultRouteTable')]"
+                                },
+                                "propagatedRouteTables": {
+                                    "labels": [
+                                        "default"
+                                    ],
+                                    "ids": [
+                                        {
+                                            "id": "[resourceId('Microsoft.Network/virtualHubs/hubRouteTables', parameters('vWanHubName'), 'defaultRouteTable')]"
+                                        }
+                                    ]
+                                },
+                                "vnetRoutes": {
+                                    "staticRoutes": []
+                                }
+                            },
+                            "vpnClientAddressPool": {
+                                "addressPrefixes": [
+                                    "10.10.8.0/24"
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "vpnGatewayScaleUnit": 1,
+                "customDnsServers": []
             }
         }
     ],
