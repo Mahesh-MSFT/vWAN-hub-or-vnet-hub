@@ -54,23 +54,7 @@ az network vnet-gateway vpn-client generate -n hubvnetGateway `
 az network vnet-gateway vpn-client show-url -g $rgName -n hubvnetGateway
 
 # After the vWAN Azure Resources are created, generate & download the VPN client
-Get-AzADSpCredential -ServicePrincipalName http://maksh-super-sp
-
-$APP_SECRET_PT = $APP_SECRET | ConvertFrom-SecureString -AsPlainText
-
-$pscredential = Get-Credential -UserName $sp.ApplicationId
-
-$psCredential = New-Object System.Management.Automation.PSCredential($APP_ID, )
-Connect-AzAccount -ServicePrincipal -Credential $pscredential -Tenant $TENANT_ID
+Connect-AzAccount
 Get-AzP2sVpnGatewayVpnProfile -Name vwanHubVnetGateway `
     -ResourceGroupName $rgName `
     -AuthenticationMethod EAPTLS
-
-
-ProfileUrl : https://nfvprodsuppby.blob.core.windows.net/vpnprofileimmutable/8cf00031-37ec-4949-b74a-48f9021bf4c0/vpnprofile/2f132439-1051-44c6-9128-b704c1c48cf7/vpnclientconfiguration.zip?sv=2017-04-17&sr=b&sig=HmBSprVrs
-             6hDY3x1HX958nimOjavnEjL2rlSuKIIW8Q%3D&st=2019-10-25T19%3A20%3A04Z&se=2019-10-25T20%3A20%3A04Z&sp=r&fileExtension=.zip
-az extension add --name virtual-wan
-az network p2s-vpn-gateway list -g $rgName
-az network vpn-site list -g $rgName
-az network p2s-vpn-gateway show -n vwanHubVnetGateway -g $rgName
-az network  p2s-vpn-gateway --help
