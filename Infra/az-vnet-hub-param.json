@@ -73,6 +73,36 @@
         },
         "vwanP2SVpnGatewayName": {
             "value": "vwanHubVnetGateway"
+        },
+        "spoke3VnetName": {
+            "value": "spoke3Vnet"
+        },
+        "spoke3VnetAddressPrefix": {
+            "value": "192.168.251.0/24"
+        },
+        "spoke3SubnetAddressPrefix": {
+            "value": "192.168.251.0/26"
+        },
+        "vm1-spoke3-nic": {
+            "value": "vm1-spoke3-nic"
+        },
+        "spoke3Vm1Name": {
+            "value": "spoke3vm1"
+        },
+        "spoke4VnetName": {
+            "value": "spoke4Vnet"
+        },
+        "spoke4VnetAddressPrefix": {
+            "value": "192.168.252.0/24"
+        },
+        "spoke4SubnetAddressPrefix": {
+            "value": "192.168.252.0/26"
+        },
+        "vm1-spoke4-nic": {
+            "value": "vm1-spoke4-nic"
+        },
+        "spoke4Vm1Name": {
+            "value": "spoke4vm1"
         }
     }
 }
