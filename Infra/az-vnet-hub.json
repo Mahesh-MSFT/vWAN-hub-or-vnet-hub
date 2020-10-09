@@ -216,8 +216,8 @@
         "HubvNettoSpokevNet2PeeringName": "[concat(parameters('hubVnetName'), '-', parameters('spoke2VnetName'))]",
         "Spoke1VM1SubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets/', parameters('spoke1VnetName'), 'default')]",
         "Spoke2VM1SubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets/', parameters('spoke2VnetName'), 'default')]",
-        "Spoke3VM1SubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets/', parameters('spoke2VnetName'), 'default')]",
-        "Spoke4VM1SubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets/', parameters('spoke2VnetName'), 'default')]"
+        "Spoke3VM1SubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets/', parameters('spoke3VnetName'), 'default')]",
+        "Spoke4VM1SubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets/', parameters('spoke4VnetName'), 'default')]"
     },
     "resources": [
         {
@@ -659,7 +659,7 @@
                                 "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('spoke3VnetName'))]"
                             },
                             "allowHubToRemoteVnetTransit": true,
-                            "allowRemoteVnetToUseHubVnetGateways": false,
+                            "allowRemoteVnetToUseHubVnetGateways": true,
                             "enableInternetSecurity": true
                         }
                     },
@@ -670,7 +670,7 @@
                                 "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('spoke4VnetName'))]"
                             },
                             "allowHubToRemoteVnetTransit": true,
-                            "allowRemoteVnetToUseHubVnetGateways": false,
+                            "allowRemoteVnetToUseHubVnetGateways": true,
                             "enableInternetSecurity": true
                         }
                     }
@@ -711,7 +711,17 @@
                 "[resourceId('Microsoft.Network/virtualHubs', parameters('vWanHubName'))]"
             ],
             "properties": {
-                "routes": [],
+                "routes": [
+                    {
+                        "name": "spoke3route",
+                        "destinationType": "CIDR",
+                           "destinations": [
+                               "192.168.251.0/24"
+                            ],
+                        "nextHopType": "ResourceId",
+                        "nextHop": "[resourceId('Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vWanHubName'), 'vhub-to-spoke3')]"
+                    }
+                ],
                 "labels": [
                     "default"
                 ]
