@@ -720,6 +720,15 @@
                             ],
                         "nextHopType": "ResourceId",
                         "nextHop": "[resourceId('Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vWanHubName'), 'vhub-to-spoke3')]"
+                    },
+                    {
+                        "name": "spoke4route",
+                        "destinationType": "CIDR",
+                           "destinations": [
+                               "192.168.252.0/24"
+                            ],
+                        "nextHopType": "ResourceId",
+                        "nextHop": "[resourceId('Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vWanHubName'), 'vhub-to-spoke4')]"
                     }
                 ],
                 "labels": [
