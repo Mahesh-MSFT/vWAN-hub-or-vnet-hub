@@ -463,7 +463,7 @@
             "osProfile": {
                 "computerName": "[parameters('spoke1Vm1Name')]",
                 "adminUsername": "spoke1vm1-uid",
-                "adminPassword": "P@ssw0rd1234"
+                "adminPassword": "<???>"
             },
             "storageProfile": {
                 "imageReference": {
@@ -599,7 +599,7 @@
             "osProfile": {
                 "computerName": "[parameters('spoke2Vm1Name')]",
                 "adminUsername": "spoke2vm1-uid",
-                "adminPassword": "P@ssw0rd1234"
+                "adminPassword": "<???>"
             },
             "storageProfile": {
                 "imageReference": {
@@ -890,7 +890,7 @@
             "osProfile": {
                 "computerName": "[parameters('spoke3Vm1Name')]",
                 "adminUsername": "spoke3vm1-uid",
-                "adminPassword": "P@ssw0rd1234"
+                "adminPassword": "<???>"
             },
             "storageProfile": {
                 "imageReference": {
@@ -1003,7 +1003,7 @@
             "osProfile": {
                 "computerName": "[parameters('spoke4Vm1Name')]",
                 "adminUsername": "spoke4vm1-uid",
-                "adminPassword": "P@ssw0rd1234"
+                "adminPassword": "<???>"
             },
             "storageProfile": {
                 "imageReference": {
