@@ -1,0 +1,3 @@
+https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-howto-openvpn-clients
+
+https://stackoverflow.com/questions/50625283/how-to-install-openssl-in-windows-10
