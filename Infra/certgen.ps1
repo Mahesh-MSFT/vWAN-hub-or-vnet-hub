@@ -4,7 +4,7 @@
 
 # Create a self-signed root certificate
 $rootcert = New-SelfSignedCertificate -Type Custom -KeySpec Signature `
--Subject "CN=makshP2SRootCert" -KeyExportPolicy Exportable `
+-Subject "CN=makshP2SRootCert2021" -KeyExportPolicy Exportable `
 -HashAlgorithm sha256 -KeyLength 2048 `
 -CertStoreLocation "Cert:\CurrentUser\My" -KeyUsageProperty Sign -KeyUsage CertSign
 
@@ -12,8 +12,8 @@ $rootcert = New-SelfSignedCertificate -Type Custom -KeySpec Signature `
 $([Convert]::ToBase64String($rootcert.Export('Cert')))
 
 # Generate a client certificate
-New-SelfSignedCertificate -Type Custom -DnsName makshP2SChildCert -KeySpec Signature `
--Subject "CN=makshP2SChildCert" -KeyExportPolicy Exportable `
+$clientCert = New-SelfSignedCertificate -Type Custom -DnsName makshP2SChildCert2021 -KeySpec Signature `
+-Subject "CN=makshP2SChildCert2021" -KeyExportPolicy Exportable `
 -HashAlgorithm sha256 -KeyLength 2048 `
 -CertStoreLocation "Cert:\CurrentUser\My" `
 -Signer $rootcert -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.2")
@@ -23,6 +23,6 @@ $clientCert = Get-ChildItem -Path "Cert:\CurrentUser\My\39E4AC16BBA18D6EA42306DD
 
 # Export client certificate
 $myclientpwd = ConvertTo-SecureString -String "1234" -Force -AsPlainText
-Export-PfxCertificate -Password $myclientpwd -Cert (get-item -Path Cert:\CurrentUser\My\$($clientCert.Thumbprint)) -FilePath myp2svpnclientCert.pfx
+Export-PfxCertificate -Password $myclientpwd -Cert (get-item -Path Cert:\CurrentUser\My\$($clientCert.Thumbprint)) -FilePath myp2svpnclientCert2021.pfx
 
 
